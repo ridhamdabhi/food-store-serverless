@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bakery Management</title>
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+
+    <meta charset="UTF-8" />
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <style>
+      .material-icons {
+        display: inline-flex;
+        vertical-align: middle;
+      }
+
+      .card {
+        background: linear-gradient(90deg, white 80%, #fdcd3b 60%);
+      }
+    </style>
+
+    <script>
+      function retriveProducts() {
+        let getAllProductsUrl =
+          "https://v8nokd46w9.execute-api.us-east-1.amazonaws.com/default/getAllProducts";
+
+        let listDiv = document.getElementById("productList");
+
+        let httpRequest = new XMLHttpRequest();
+
+        httpRequest.onreadystatechange = function () {
+          if (httpRequest.readyState == 4 && this.status == 200) {
+            let data = JSON.parse(httpRequest.responseText);
+
+            for (let index in data) {
+              let newDiv = document.createElement("div");
+
+              newDiv.innerHTML =
+                '<div class="col mb-4"> ' +
+                '<div class="card"> ' +
+                ' <div class="card-body"> ' +
+                '<h5 class="card-title"> ' +
+                data[index].productName +
+                "</h5>" +
+                '<p class="card-text"><b>Price:</b> ' +
+                data[index].productPrice +
+                " &#8377;</p>" +
+                '<button class="btn btn-secondary" onclick="editProduct(\'' +
+                data[index].id +
+                "', '" +
+                data[index].productName +
+                "', '" +
+                data[index].productPrice +
+                "')\">" +
+                "Edit " +
+                "</button> " +
+                '<button class="btn btn-danger" onclick="confirmDeleteProduct(\'' +
+                data[index].id +
+                "')\">" +
+                "Delete " +
+                "</button> " +
+                "</div> " +
+                "</div>" +
+                "</div>";
+
+              listDiv.appendChild(newDiv);
+            }
+          }
+        };
+
+        httpRequest.open("GET", getAllProductsUrl, true);
+        httpRequest.send();
+      }
+
+      function editProduct(id, name, price) {
+        window.location.href =
+          "./add.html?id=" + id + "&name=" + name + "&price=" + price;
+        return true;
+      }
+
+      function confirmDeleteProduct(id) {
+        $("#deleteButton").html(
+          '<button class="btn btn-danger" onclick="deleteProduct(\'' +
+            id +
+            "')\">Delete</button>"
+        );
+
+        $("#deleteProductModal").modal("show");
+        return true;
+      }
+
+      function deleteProduct(id) {
+        let deleteProductUrl =
+          "https://v8nokd46w9.execute-api.us-east-1.amazonaws.com/default/deleteProduct";
+
+        $("#deleteProductModal").modal("hide");
+
+        // create request body
+        let request = {
+          id: id,
+        };
+
+        // send request
+        let httpRequest = new XMLHttpRequest();
+
+        httpRequest.onreadystatechange = function () {
+          if (httpRequest.readyState == 4 && this.status == 200) {
+            window.location.href = "./index.html";
+          }
+        };
+
+        httpRequest.open("POST", deleteProductUrl, true);
+        httpRequest.setRequestHeader("Content-Type", "application/json");
+        httpRequest.send(JSON.stringify(request));
+      }
+    </script>
+  </head>
+
+  <body onload="retriveProducts()">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark mb-4">
+      <a class="navbar-brand" href="./index.html">Bakery Management</a>
+    </nav>
+
+    <div class="ml-4">
+      <a class="btn btn-info" href="./add.html" role="button"
+        ><i class="material-icons md-light">add</i> New Food Recipe</a
+      >
+    </div>
+
+    <div class="m-4 p-4 mb-5 border border-info rounded">
+      <h5>Manage Products</h5>
+
+      <hr />
+      <div id="productList" class="row row-cols-1 row-cols-md-4"></div>
+    </div>
+
+    <!-- Delete Product Modal -->
+    <div id="deleteProductModal" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Product</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the product?</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+
+            <span id="deleteButton"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
